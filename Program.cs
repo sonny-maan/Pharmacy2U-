@@ -6,30 +6,37 @@ using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using NUnit.Framework;
 
-namespace Pharmacy2U_Tech_Test
-{
-    class Program
-{
-    static void displayMenu() { //Drawing main menu
-    Console.WriteLine("\n1.  GBP To USD");
-    Console.WriteLine("2.  GBP To AUD");
-    Console.WriteLine("3.  GBP To EUR");
-    Console.WriteLine("\n4.  USD To GBP");
-    Console.WriteLine("5.  USD To AUD");
-    Console.WriteLine("6.  USD To EUR");
-    Console.WriteLine("\n7.  AUD To GBP");
-    Console.WriteLine("8.  AUD To USD");
-    Console.WriteLine("9.  AUD To EUR");
-    Console.WriteLine("\n10. EUR To GBP");
-    Console.WriteLine("11. EUR To USD");
-    Console.WriteLine("12. EUR To AUD");
-    Console.WriteLine("\n13. View Previous Conversions");
-    Console.WriteLine("\n14. Exit");
-    Console.Write("\nSelect Option =>    ");
-    }
-    static void Main(string[] args) {
-    double[] arrayConversionRates = new double[12]; //Declare array to hold conversion rates
-    double GBP = 0;
+namespace project {
+ class Program {
+   static void displayMenu() { //Drawing main menu
+   Console.WriteLine("\n1.  GBP To USD");
+   Console.WriteLine("2.  GBP To AUD");
+   Console.WriteLine("3.  GBP To EUR");
+   Console.WriteLine("\n4.  USD To GBP");
+   Console.WriteLine("5.  USD To AUD");
+   Console.WriteLine("6.  USD To EUR");
+   Console.WriteLine("\n7.  AUD To GBP");
+   Console.WriteLine("8.  AUD To USD");
+   Console.WriteLine("9.  AUD To EUR");
+   Console.WriteLine("\n10. EUR To GBP");
+   Console.WriteLine("11. EUR To USD");
+   Console.WriteLine("12. EUR To AUD");
+   Console.WriteLine("\n13. View Previous Conversions");
+   Console.WriteLine("\n14. Exit");
+   Console.Write("\nSelect Option =>    ");
+  }
+
+  static void Main(string[] args) {
+   double[] arrayConversionRates = new double[12]; //Declare array to hold conversion rates
+   double GBP = 0;
+
+   //Create Database Connection
+   var connectionStringBuilder = new SqliteConnectionStringBuilder();
+
+   //Use previous_conversions database. If it does not exist, create it:
+   connectionStringBuilder.DataSource = "./previous_conversions.db";
+   using(var connection = new SqliteConnection(connectionStringBuilder.ConnectionString)) {
+    connection.Open();
 
     //Conversion rate constant values
     const double GBP_TO_USD = 1.30464;
@@ -66,19 +73,18 @@ namespace Pharmacy2U_Tech_Test
     bool flag = false;
     bool d = false;
 
-    
     do {
-    flag = false;
-    string value = "";
-    displayMenu(); //Loads user options to console
-    userOption = Convert.ToInt32(Console.ReadLine());
-    
-    while (userOption < 1 || userOption > 14) {
+     flag = false;
+     string value = "";
+     displayMenu(); //Loads user options to console
+     userOption = Convert.ToInt32(Console.ReadLine());
+
+     while (userOption < 1 || userOption > 14) {
       Console.Write("\nInvalid Option! Choose correct one:   "); //User can only enter menu options
       userOption = Convert.ToInt32(Console.ReadLine());
      }
- 
-         if (userOption <= 3) //Validation on GBP conversions (no negatives, only 2 Decimal Places)
+
+     if (userOption <= 3) //Validation on GBP conversions (no negatives, only 2 Decimal Places)
      {
 
       flag = false;
@@ -109,7 +115,7 @@ namespace Pharmacy2U_Tech_Test
        }
       }
       GBP = Convert.ToDouble(value);
-       } else if (userOption <= 6) //Validation on USD conversions (no negatives, only 2 Decimal Places)
+     } else if (userOption <= 6) //Validation on USD conversions (no negatives, only 2 Decimal Places)
      {
       flag = false;
       while (flag == false) {
@@ -139,8 +145,7 @@ namespace Pharmacy2U_Tech_Test
        }
       }
       USD = Convert.ToDouble(value);
-     } 
-     else if (userOption <= 9) //Validation on AUD conversions (no negatives, only 2 Decimal Places)
+     } else if (userOption <= 9) //Validation on AUD conversions (no negatives, only 2 Decimal Places)
      {
       flag = false;
       while (flag == false) {
@@ -170,8 +175,7 @@ namespace Pharmacy2U_Tech_Test
        }
       }
       AUD = Convert.ToDouble(value);
-     } 
-     else if (userOption <= 12) //Validation on EUR conversions (no negatives, only 2 Decimal Places)
+     } else if (userOption <= 12) //Validation on EUR conversions (no negatives, only 2 Decimal Places)
      {
       flag = false;
       while (flag == false) {
@@ -201,51 +205,109 @@ namespace Pharmacy2U_Tech_Test
        }
       }
       EUR = Convert.ToDouble(value);
-     } 
+     }
 
-     if (userOption == 1) {
+    if (userOption == 1) {
       USD = GBP * arrayConversionRates[0];// Multiplying user input by GBP to USD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = GBP + " GBP = " + USD.ToString("F") + " USD"; //Making conversion message so it can be added to database
       Console.WriteLine(conversionmessage); //Printing message for user
       Console.WriteLine("************************");
+      DateTime currentdate = DateTime.Now; //Getting current date
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)"; //SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy")); //Formatting to UK date format
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
      }
+    
     else if (userOption == 2) {
       AUD = GBP * arrayConversionRates[1];// Multiplying user input by GBP to AUD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = GBP + " GBP = " + AUD.ToString("F") + " AUD";//Making conversion message so it can be added to database
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
-        else if (userOption == 3) {
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)"; //SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
+    
+    else if (userOption == 3) {
       EUR = GBP * arrayConversionRates[2];// Multiplying user input by GBP to EUR rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = GBP + " GBP = " + EUR.ToString("F") + " EUR";//Making conversion message so it can be added to database
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-        }
-
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
+    
     else if (userOption == 4) {
       ConversionResult = USD * arrayConversionRates[3]; //Multiplying user input by to GBP rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = USD + " USD = " + ConversionResult.ToString("F") + " GBP";//Making conversion message so it can be added to database
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
-       else if (userOption == 5) {
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
+    
+    else if (userOption == 5) {
       ConversionResult = USD * arrayConversionRates[4]; //Multiplying user input by USD to AUD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = USD + " USD = " + ConversionResult.ToString("F") + " AUD";//Making conversion message so it can be added to database
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-       }
-           else if (userOption == 6) {
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
+    
+    else if (userOption == 6) {
       ConversionResult = USD * arrayConversionRates[5]; //Multiplying user input by USD to EUR rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = USD + " USD = " + ConversionResult.ToString("F") + " EUR";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-           }
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
 
     else if (userOption == 7) {
       ConversionResult = AUD * arrayConversionRates[6];//Multiplying user input by AUD to GBP rate
@@ -253,50 +315,125 @@ namespace Pharmacy2U_Tech_Test
       string conversionmessage = AUD + " AUD = " + ConversionResult.ToString("F") + " GBP";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
-
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     }
+    
     else if (userOption == 8) {
       ConversionResult = AUD * arrayConversionRates[7];//Multiplying user input by AUD to USD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = AUD + " AUD = " + ConversionResult.ToString("F") + " USD";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
-
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     } 
+    
     else if (userOption == 9) {
       ConversionResult = AUD * arrayConversionRates[8];//Multiplying user input by AUD to EUR rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = AUD + " AUD = " + ConversionResult.ToString("F") + " EUR";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     } 
+    
     else if (userOption == 10) {
       ConversionResult = EUR * arrayConversionRates[9];//Multiplying user input by EUR to GBP rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = EUR + " EUR = " + ConversionResult.ToString("F") + " GBP";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
-       else if (userOption == 11) {
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     } 
+     
+    else if (userOption == 11) {
       ConversionResult = EUR * arrayConversionRates[10];//Multiplying user input by EUR to USD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = EUR + " EUR = " + ConversionResult.ToString("F") + " USD";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-       }
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     } 
+     
     else if (userOption == 12) {
       ConversionResult = EUR * arrayConversionRates[11];//Multiplying user input by EUR to AUD rate
       Console.WriteLine("\n\n************************");
       string conversionmessage = EUR + " EUR = " + ConversionResult.ToString("F") + " AUD";
       Console.WriteLine(conversionmessage);
       Console.WriteLine("************************");
-    }
+      DateTime currentdate = DateTime.Now;
+      using(var transaction = connection.BeginTransaction()) {
+       var insertCmd = connection.CreateCommand();
+       insertCmd.CommandText = "INSERT INTO previous_conversions (date, conversion_message) VALUES (@current, @message)";//SQL to add conversion message and the current date to database
+       insertCmd.Parameters.AddWithValue("@message", conversionmessage);
+       insertCmd.Parameters.AddWithValue("@current", currentdate.ToString("dd/MM/yyyy"));
+       insertCmd.ExecuteNonQuery();
+       transaction.Commit();
+      }
+     } 
+     
+    else if (userOption == 13) {
+         
+      //    Console.WriteLine("\nEnter starting date (e.g. DD/MM/YYYY):  ");
+      //    string startingDate = Console.ReadLine();
+      //    Console.WriteLine("\nEnter ending date (e.g. DD/MM/YYYY):  ");
+      //    string endingDate = Console.ReadLine();
 
-    
+      var selectallrecordsCmd = connection.CreateCommand();
+      selectallrecordsCmd.CommandText = "SELECT date, conversion_message FROM previous_conversions ";//Read data from previous_conversions table
+      selectallrecordsCmd.ExecuteNonQuery();
+      using(var reader = selectallrecordsCmd.ExecuteReader()) {
+       while (reader.Read()) {
+        Console.WriteLine(reader.GetString(0) + ": " + reader.GetString(1)); //Write contents of table to console
+       }
+      }
+
+     }
+    } 
+
     while (userOption != 14);
 
     Console.WriteLine("\n\n*****GOOD BYE*****\n\n");
-    }
-
-
+   }
+  }
+ }
 }
