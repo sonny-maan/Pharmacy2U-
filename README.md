@@ -112,13 +112,6 @@ As a User
 So the conversions remain accurate
 I want to only be able to enter numbers upto 2 decimal places
 ```
-**Road**
-
-```
-As a User
-So that people don't get their shoes dirty
-I want a road for them to follow
-```
 
 ## License
 [![CC0](https://licensebuttons.net/p/zero/1.0/88x31.png)](https://creativecommons.org/publicdomain/zero/1.0/)
