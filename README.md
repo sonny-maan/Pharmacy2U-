@@ -27,12 +27,12 @@ I want to be able to view a list of all conversions
 ```
 ```
 As a User
-So that I can identify the conversions
-I want the conversions to be dates
+So that I can identify and look back on the conversions
+I want the conversions to be dated
 ```
 ```
 As a User
-So that I can store many conversions
+So that I can store old conversions and view them again later
 I want the conversions to be stored into a database
 ```
 **GBP**
