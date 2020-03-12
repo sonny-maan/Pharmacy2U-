@@ -5,7 +5,7 @@
 
 Simply visit [here](https://github.com/sonny-maan/Pharmacy2U-) to clone the project repo
 
-****Then* run***
+****Then travel to the project directory in a terminal and* run***
 
 ```c#
 dotnet run
