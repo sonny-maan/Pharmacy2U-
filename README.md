@@ -1,4 +1,4 @@
-# <a href='https://github.com/sonny-maan'><img  src='https://www.pharmacy2u.co.uk/news/wp-content/themes/codilight/images/Pharmacy2U-Logo.png'  width='300'></a>  -  ![badge](https://img.shields.io/badge/Made--By-Sonny-red) ![badge](https://img.shields.io/badge/Pharmacy2U-TechTest-brightgreen)
+# <a href='https://github.com/sonny-maan'><img  src='https://www.pharmacy2u.co.uk/news/wp-content/themes/codilight/images/Pharmacy2U-Logo.png'  width='300'></a>    ![badge](https://img.shields.io/badge/Made--By-Sonny-red) ![badge](https://img.shields.io/badge/Pharmacy2U-TechTest-brightgreen)
 
 
 ## Usage
